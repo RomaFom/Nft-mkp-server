@@ -6,3 +6,12 @@ CREATE TABLE users
     wallet varchar(255) not null default '0x0',
     password_hash varchar(255) not null
 );
+
+
+CREATE TABLE transactions
+(
+    id serial not null unique,
+    user_id integer not null,
+    tx_hash varchar(255) not null unique,
+    created_at timestamp not null default now()
+);

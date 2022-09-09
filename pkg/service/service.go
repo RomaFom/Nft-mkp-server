@@ -12,12 +12,19 @@ type Authorization interface {
 	GetUserById(id int) (app.User, error)
 }
 
+type Transaction interface {
+	CreateTransaction(userId int, transaction string) (int, error)
+	GetAllTransactions() ([]app.Transaction, error)
+}
+
 type Service struct {
 	Authorization
+	Transaction
 }
 
 func NewService(repos *repository.Repository) *Service {
 	return &Service{
 		Authorization: NewAuthService(repos.Authorization),
+		Transaction:   NewTransactionService(repos.Transaction),
 	}
 }
