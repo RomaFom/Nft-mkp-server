@@ -16,10 +16,10 @@ func NewTransactionPostgres(db *sqlx.DB) *TransactionPostgres {
 	}
 }
 
-func (r *TransactionPostgres) CreateTransaction(userId int, transaction string) (int, error) {
+func (r *TransactionPostgres) CreateTransaction(wallet string, transaction string) (int, error) {
 	var id int
-	query := fmt.Sprintf("INSERT INTO %s (user_id, tx_hash) VALUES ($1, $2) RETURNING id", transactionsTable)
-	row := r.db.QueryRow(query, userId, transaction)
+	query := fmt.Sprintf("INSERT INTO %s (wallet, tx_hash) VALUES ($1, $2) RETURNING id", transactionsTable)
+	row := r.db.QueryRow(query, wallet, transaction)
 	if err := row.Scan(&id); err != nil {
 		return 0, err
 	}

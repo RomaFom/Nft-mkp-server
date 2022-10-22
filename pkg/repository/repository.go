@@ -12,7 +12,7 @@ type Authorization interface {
 }
 
 type Transaction interface {
-	CreateTransaction(userId int, transaction string) (int, error)
+	CreateTransaction(wallet string, transaction string) (int, error)
 	GetAllTransactions() ([]app.Transaction, error)
 }
 

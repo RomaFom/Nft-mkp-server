@@ -2,6 +2,7 @@ package handler
 
 import (
 	"app/pkg/service"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,13 +15,14 @@ func NewHandler(services *service.Service) *Handler {
 }
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.New()
+	router.Use(cors.Default())
 	auth := router.Group("/auth")
 	{
 		auth.POST("/sign-up", h.signUp)
 		auth.POST("/sign-in", h.signIn)
 		auth.GET("/get-user-data", h.userIdentity, h.GetUserData)
 	}
-	transaction := router.Group("/transaction", h.userIdentity)
+	transaction := router.Group("/transaction")
 	{
 		transaction.POST("/add", h.addTransaction)
 		transaction.GET("/get-all", h.getAllTransactions)

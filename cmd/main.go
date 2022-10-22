@@ -50,6 +50,7 @@ func main() {
 		if err != nil {
 			logrus.Fatalf("Error running server %s", err.Error())
 		}
+		server.EnableCors()
 	}()
 
 	quit := make(chan os.Signal, 1)

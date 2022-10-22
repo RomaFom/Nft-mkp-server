@@ -11,7 +11,7 @@ CREATE TABLE users
 CREATE TABLE transactions
 (
     id serial not null unique,
-    user_id integer not null,
+    wallet varchar(255) not null,
     tx_hash varchar(255) not null unique,
     created_at timestamp not null default now()
 );
