@@ -15,7 +15,11 @@ func NewHandler(services *service.Service) *Handler {
 }
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.New()
-	router.Use(cors.Default())
+	router.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{"*"},
+		AllowHeaders: []string{"*"},
+	}))
 	auth := router.Group("/auth")
 	{
 		auth.POST("/sign-up", h.signUp)
