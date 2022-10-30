@@ -50,10 +50,10 @@ func (s *AuthService) GenerateToken(username, password string) (string, error) {
 	return token.SignedString([]byte(os.Getenv("SIGNATURE")))
 }
 
-func (s *AuthService) GetUserById(id int) (app.User, error) {
+func (s *AuthService) GetUserById(id int) (app.UserPublicDTO, error) {
 	user, err := s.repo.GetUserById(id)
 	if err != nil {
-		return app.User{}, err
+		return app.UserPublicDTO{}, err
 	}
 	return user, nil
 }

@@ -1,0 +1,27 @@
+package service
+
+import (
+	"app"
+	"app/pkg/repository"
+	"math/big"
+)
+
+type MarketplaceService struct {
+	repo repository.Marketplace
+}
+
+func NewMarketplaceService(repo repository.Marketplace) *MarketplaceService {
+	return &MarketplaceService{repo: repo}
+}
+
+func (s *MarketplaceService) GetItemCount() (*big.Int, error) {
+	return s.repo.GetItemCount()
+}
+
+func (s *MarketplaceService) GetMarketplaceItems() ([]app.MarketplaceItemDTO, error) {
+	count, err := s.repo.GetItemCount()
+	if err != nil {
+		return nil, err
+	}
+	return s.repo.GetMarketplaceItems(count)
+}

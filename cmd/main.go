@@ -5,7 +5,10 @@ import (
 	"app/pkg/handler"
 	"app/pkg/repository"
 	"app/pkg/service"
+	"app/pkg/smart-contracts"
 	"context"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
@@ -41,7 +44,20 @@ func main() {
 		logrus.Fatalf("Failed to init db %s", dbErr.Error())
 	}
 
-	repos := repository.NewRepository(db)
+	ethersClient, etherErr := ethclient.Dial("http://127.0.0.1:8545")
+	if etherErr != nil {
+		logrus.Fatalf("Failed to init ethers connection %s", etherErr.Error())
+	}
+
+	mkp, err := sc_api.NewScApi(common.HexToAddress("0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0"), ethersClient)
+	if err != nil {
+		panic(err)
+	}
+
+	//test, err := mkp.ItemCount(&bind.CallOpts{})
+	//fmt.Println(test)
+
+	repos := repository.NewRepository(db, mkp)
 	services := service.NewService(repos)
 	handlers := handler.NewHandler(services)
 	server := new(app.Server)

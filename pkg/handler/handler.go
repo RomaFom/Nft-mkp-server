@@ -31,6 +31,11 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		transaction.POST("/add", h.addTransaction)
 		transaction.GET("/get-all", h.getAllTransactions)
 	}
+	marketplace := router.Group("/marketplace")
+	{
+		marketplace.GET("/item-count", h.getItemCount)
+		marketplace.GET("/get-all", h.getAllItems)
+	}
 
 	return router
 }

@@ -43,8 +43,8 @@ func (r *AuthPostgres) GetUser(username, password string) (app.User, error) {
 	return user, err
 }
 
-func (r *AuthPostgres) GetUserById(id int) (app.User, error) {
-	var user app.User
+func (r *AuthPostgres) GetUserById(id int) (app.UserPublicDTO, error) {
+	var user app.UserPublicDTO
 	query := fmt.Sprintf(`SELECT id, name, username, wallet FROM %s WHERE id=$1`, userTable)
 	err := r.db.Get(&user, query, id)
 	return user, err
