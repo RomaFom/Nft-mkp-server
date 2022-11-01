@@ -2,10 +2,11 @@ package main
 
 import (
 	"app"
+	"app/pkg/MkpSc"
+	nft_api "app/pkg/NftSc"
 	"app/pkg/handler"
 	"app/pkg/repository"
 	"app/pkg/service"
-	"app/pkg/smart-contracts"
 	"context"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -49,15 +50,17 @@ func main() {
 		logrus.Fatalf("Failed to init ethers connection %s", etherErr.Error())
 	}
 
-	mkp, err := sc_api.NewScApi(common.HexToAddress("0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0"), ethersClient)
+	mkp, err := mkp_api.NewMkpApi(common.HexToAddress("0x7a2088a1bFc9d81c55368AE168C2C02570cB814F"), ethersClient)
 	if err != nil {
-		panic(err)
+		logrus.Fatalf("Failed to init ethers connection %s", err.Error())
 	}
 
-	//test, err := mkp.ItemCount(&bind.CallOpts{})
-	//fmt.Println(test)
+	nft, err := nft_api.NewNftApi(common.HexToAddress("0x4A679253410272dd5232B3Ff7cF5dbB88f295319"), ethersClient)
+	if err != nil {
+		logrus.Fatalf("Failed to init ethers connection %s", err.Error())
+	}
 
-	repos := repository.NewRepository(db, mkp)
+	repos := repository.NewRepository(db, mkp, nft)
 	services := service.NewService(repos)
 	handlers := handler.NewHandler(services)
 	server := new(app.Server)

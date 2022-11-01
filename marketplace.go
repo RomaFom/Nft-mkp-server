@@ -7,10 +7,17 @@ import (
 
 type MarketplaceItemDTO struct {
 	ItemId       *big.Int
-	Nft          common.Address
+	Nft          NftDTO
 	TokenId      *big.Int
 	Price        *big.Int
 	ListingPrice *big.Int
 	Seller       common.Address
 	IsSold       bool
+	TotalPrice   *big.Int
+}
+
+type NftDTO struct {
+	Image       string `json:"image" binding:"required"`
+	Name        string `json:"name" binding:"required"`
+	Description string `json:"description" binding:"required"`
 }

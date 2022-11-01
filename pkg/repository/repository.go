@@ -2,7 +2,8 @@ package repository
 
 import (
 	"app"
-	sc_api "app/pkg/smart-contracts"
+	mkp_api "app/pkg/MkpSc"
+	nft_api "app/pkg/NftSc"
 	"github.com/jmoiron/sqlx"
 	"math/big"
 )
@@ -29,10 +30,10 @@ type Repository struct {
 	Marketplace
 }
 
-func NewRepository(db *sqlx.DB, sc *sc_api.ScApi) *Repository {
+func NewRepository(db *sqlx.DB, mkp *mkp_api.MkpApi, nft *nft_api.NftApi) *Repository {
 	return &Repository{
 		Authorization: NewAuthPostgres(db),
 		Transaction:   NewTransactionPostgres(db),
-		Marketplace:   NewMarketplaceSc(sc),
+		Marketplace:   NewMarketplaceSc(mkp, nft),
 	}
 }

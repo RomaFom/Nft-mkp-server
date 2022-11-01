@@ -18,10 +18,6 @@ func (s *MarketplaceService) GetItemCount() (*big.Int, error) {
 	return s.repo.GetItemCount()
 }
 
-func (s *MarketplaceService) GetMarketplaceItems() ([]app.MarketplaceItemDTO, error) {
-	count, err := s.repo.GetItemCount()
-	if err != nil {
-		return nil, err
-	}
+func (s *MarketplaceService) GetMarketplaceItems(count *big.Int) ([]app.MarketplaceItemDTO, error) {
 	return s.repo.GetMarketplaceItems(count)
 }
