@@ -60,14 +60,14 @@ func (r *MarketplaceSC) GetMarketplaceItems(count *big.Int) ([]app.MarketplaceIt
 				}
 
 				ch <- app.MarketplaceItemDTO{
-					ItemId:       big.NewInt(int64(i)),
+					ItemId:       int64(i),
 					Nft:          nftItem,
-					TokenId:      item.TokenId,
-					Price:        item.Price,
-					ListingPrice: item.ListingPrice,
+					TokenId:      item.TokenId.Int64(),
+					Price:        app.ToDecimal(item.Price, 18),
+					ListingPrice: app.ToDecimal(item.ListingPrice, 18),
 					Seller:       item.Seller,
 					IsSold:       item.IsSold,
-					TotalPrice:   finalPrice,
+					TotalPrice:   app.ToDecimal(finalPrice, 18),
 				}
 			}
 		}(i)

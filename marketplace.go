@@ -2,18 +2,18 @@ package app
 
 import (
 	"github.com/ethereum/go-ethereum/common"
-	"math/big"
+	"github.com/shopspring/decimal"
 )
 
 type MarketplaceItemDTO struct {
-	ItemId       *big.Int
+	ItemId       int64
 	Nft          NftDTO
-	TokenId      *big.Int
-	Price        *big.Int
-	ListingPrice *big.Int
+	TokenId      int64
+	Price        decimal.Decimal
+	ListingPrice decimal.Decimal
 	Seller       common.Address
 	IsSold       bool
-	TotalPrice   *big.Int
+	TotalPrice   decimal.Decimal
 }
 
 type NftDTO struct {
