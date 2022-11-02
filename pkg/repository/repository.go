@@ -24,6 +24,7 @@ type Marketplace interface {
 	GetMarketplaceItems() ([]app.MarketplaceItemDTO, error)
 	GetMyListings(wallet string) ([]app.MarketplaceItemDTO, error)
 	GetMyPurchases(wallet string) ([]app.MarketplaceItemDTO, error)
+	GetItemsNoThreads() ([]app.MarketplaceItemDTO, error)
 }
 
 type Repository struct {
