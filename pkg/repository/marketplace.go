@@ -5,7 +5,6 @@ import (
 	mkp_api "app/pkg/MkpSc"
 	nft_api "app/pkg/NftSc"
 	"encoding/json"
-	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"io"
@@ -46,7 +45,6 @@ func (r *MarketplaceSC) GetItemsNoThreads() ([]app.MarketplaceItemDTO, error) {
 		if err != nil {
 			return nil, err
 		}
-		fmt.Println(item)
 
 		if item.IsSold == false {
 			// Call NFT contract to get tokenURI
@@ -96,7 +94,6 @@ func (r *MarketplaceSC) GetMarketplaceItems() ([]app.MarketplaceItemDTO, error) 
 			if err != nil {
 				return
 			}
-			fmt.Println(item)
 
 			if item.IsSold == false {
 				// Call NFT contract to get tokenURI
@@ -201,8 +198,7 @@ func (r *MarketplaceSC) GetMyPurchases(wallet string) ([]app.MarketplaceItemDTO,
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println([]common.Address{address})
-	fmt.Println(bought)
+
 	for bought.Next() {
 		item, err := r.MkpSc.Items(&bind.CallOpts{}, bought.Event.ItemId)
 		if err != nil {
