@@ -20,7 +20,9 @@ type Transaction interface {
 
 type Marketplace interface {
 	GetItemCount() (*big.Int, error)
-	GetMarketplaceItems(count *big.Int) ([]app.MarketplaceItemDTO, error)
+	GetMarketplaceItems() ([]app.MarketplaceItemDTO, error)
+	GetMyListings(wallet string) ([]app.MarketplaceItemDTO, error)
+	GetMyPurchases(wallet string) ([]app.MarketplaceItemDTO, error)
 }
 
 type Service struct {

@@ -10,6 +10,7 @@ import (
 const (
 	authHeader = "Authorization"
 	userCtx    = "userId"
+	wallet     = "wallet"
 )
 
 func (h *Handler) userIdentity(c *gin.Context) {
@@ -49,4 +50,15 @@ func getUserId(c *gin.Context) (int, error) {
 	}
 	return idInt, nil
 
+}
+
+func (h *Handler) getUserWallet(c *gin.Context) (string, error) {
+	header := c.GetHeader(wallet)
+
+	if header == "" {
+		newErrorResponse(c, http.StatusUnauthorized, "empty wallet header")
+		return "", errors.New("empty wallet header")
+	}
+
+	return header, nil
 }
