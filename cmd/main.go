@@ -64,6 +64,13 @@ func main() {
 	services := service.NewService(repos)
 	handlers := handler.NewHandler(services)
 	server := new(app.Server)
+
+	//cron := cron.New()
+	//cron.AddFunc("@every 3s", func() {
+	//	fmt.Println("cron")
+	//})
+	//cron.Start()
+
 	go func() {
 		err := server.Run(viper.GetString("port"), handlers.InitRoutes())
 		if err != nil {

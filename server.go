@@ -33,3 +33,8 @@ func (s *Server) EnableCors() {
 func (s *Server) ShutDown(ctx context.Context) error {
 	return s.httpserver.Shutdown(ctx)
 }
+
+//func (s *Server) StartJobs() {
+//	cronJobs := new(cronJobs.CronTasks)
+//	cronJobs.RunCronJobs()
+//}
