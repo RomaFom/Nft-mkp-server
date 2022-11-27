@@ -22,14 +22,19 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	}))
 	auth := router.Group("/auth")
 	{
-		auth.POST("/sign-up", h.signUp)
-		auth.POST("/sign-in", h.signIn)
-		auth.GET("/get-user-data", h.userIdentity, h.GetUserData)
+		auth.POST("/registration", h.signUp)
+		auth.POST("/login", h.signIn)
+		auth.GET("/get-user", h.userIdentity, h.GetUserData)
 	}
 	transaction := router.Group("/transaction")
 	{
 		transaction.POST("/add", h.addTransaction)
 		transaction.GET("/get-all", h.getAllTransactions)
+
+		nft := transaction.Group("/nft")
+		{
+			nft.GET("/:id", h.getNftTransactions)
+		}
 	}
 	marketplace := router.Group("/marketplace")
 	{

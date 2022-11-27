@@ -12,14 +12,13 @@ import (
 )
 
 const (
-	//salt      = "TEST__salt__GEN"
-	//signinKey = "###asdfghjklqwertyuiop@@@"
 	tokenTTL = 24 * time.Hour
 )
 
 type tokenClaims struct {
 	jwt.StandardClaims
-	UserId int `json:"user_id"`
+	UserId   int    `json:"user_id"`
+	UserName string `json:"username"`
 }
 
 type AuthService struct {
@@ -46,6 +45,7 @@ func (s *AuthService) GenerateToken(username, password string) (string, error) {
 			IssuedAt:  time.Now().Unix(),
 		},
 		user.Id,
+		user.Username,
 	})
 	return token.SignedString([]byte(os.Getenv("SIGNATURE")))
 }

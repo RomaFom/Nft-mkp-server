@@ -22,10 +22,6 @@ func (s *MarketplaceService) GetMarketplaceItems() ([]app.MarketplaceItemDTO, er
 	return s.repo.GetMarketplaceItems()
 }
 
-func (s *MarketplaceService) GetItemsNoThreads() ([]app.MarketplaceItemDTO, error) {
-	return s.repo.GetItemsNoThreads()
-}
-
 func (s *MarketplaceService) GetMyPurchases(wallet string) ([]app.MarketplaceItemDTO, error) {
 	return s.repo.GetMyPurchases(wallet)
 }

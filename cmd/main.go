@@ -50,12 +50,12 @@ func main() {
 		logrus.Fatalf("Failed to init ethers connection %s", etherErr.Error())
 	}
 
-	mkp, err := mkp_api.NewMkpApi(common.HexToAddress("0x937f8bb67B61ad405D56BD3e1094b172D96B4038"), ethersClient)
+	mkp, err := mkp_api.NewMkpApi(common.HexToAddress("0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"), ethersClient)
 	if err != nil {
 		logrus.Fatalf("Failed to init ethers connection %s", err.Error())
 	}
 
-	nft, err := nft_api.NewNftApi(common.HexToAddress("0x98b198fd9B2B2136346a9278c890fC83cce85Ba9"), ethersClient)
+	nft, err := nft_api.NewNftApi(common.HexToAddress("0x5FbDB2315678afecb367f032d93F642f64180aa3"), ethersClient)
 	if err != nil {
 		logrus.Fatalf("Failed to init ethers connection %s", err.Error())
 	}

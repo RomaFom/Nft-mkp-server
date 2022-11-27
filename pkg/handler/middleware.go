@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -11,6 +12,7 @@ const (
 	authHeader = "Authorization"
 	userCtx    = "userId"
 	wallet     = "wallet"
+	id         = "id"
 )
 
 func (h *Handler) userIdentity(c *gin.Context) {
@@ -61,4 +63,15 @@ func (h *Handler) getUserWallet(c *gin.Context) (string, error) {
 	}
 
 	return header, nil
+}
+
+func getId(c *gin.Context) (int, error) {
+	id, err := strconv.Atoi(c.Param("id"))
+
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, "id not found")
+		return 0, errors.New("id not found")
+	}
+
+	return id, nil
 }

@@ -9,17 +9,18 @@ import (
 type TransactionInput struct {
 	TxHash string `json:"tx_hash" binding:"required"`
 	Wallet string `json:"wallet" binding:"required"`
+	UserId int    `json:"user_id" binding:"required"`
+	ItemId int    `json:"item_id" binding:"required"`
 }
 
 func (h *Handler) addTransaction(c *gin.Context) {
-	var input TransactionInput
-
+	var input app.Transaction
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	txId, err := h.services.Transaction.CreateTransaction(input.Wallet, input.TxHash)
+	txId, err := h.services.Transaction.CreateTransaction(input)
 
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -45,4 +46,23 @@ func (h *Handler) getAllTransactions(c *gin.Context) {
 	c.JSON(http.StatusOK, getAllTransactionsResponse{
 		Data: txList,
 	})
+}
+
+func (h *Handler) getNftTransactions(c *gin.Context) {
+	nftId, err := getId(c)
+
+	if err != nil {
+		return
+	}
+
+	txList, err := h.services.Transaction.GetNftTransactions(nftId)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, getAllTransactionsResponse{
+		Data: txList,
+	})
+
 }

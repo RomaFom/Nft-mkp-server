@@ -13,10 +13,14 @@ func NewTransactionService(repo repository.Transaction) *TransactionService {
 	return &TransactionService{repo: repo}
 }
 
-func (s *TransactionService) CreateTransaction(wallet string, transaction string) (int, error) {
-	return s.repo.CreateTransaction(wallet, transaction)
+func (s *TransactionService) CreateTransaction(tx app.Transaction) (int, error) {
+	return s.repo.CreateTransaction(tx)
 }
 
 func (s *TransactionService) GetAllTransactions() ([]app.Transaction, error) {
 	return s.repo.GetAllTransactions()
+}
+
+func (s *TransactionService) GetNftTransactions(id int) ([]app.Transaction, error) {
+	return s.repo.GetNftTransactions(id)
 }

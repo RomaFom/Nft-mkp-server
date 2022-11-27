@@ -31,49 +31,6 @@ func (r *MarketplaceSC) GetItemCount() (*big.Int, error) {
 	return count, err
 }
 
-func (r *MarketplaceSC) GetItemsNoThreads() ([]app.MarketplaceItemDTO, error) {
-	count, err := r.GetItemCount()
-	if err != nil {
-		return nil, err
-	}
-	var items []app.MarketplaceItemDTO
-
-	for i := 1; i <= int(count.Int64()); i++ {
-
-		// Get item from marketplace Contract
-		item, err := r.MkpSc.Items(&bind.CallOpts{}, big.NewInt(int64(i)))
-		if err != nil {
-			return nil, err
-		}
-
-		if item.IsSold == false {
-			// Call NFT contract to get tokenURI
-			nftItem, err := r.GetNftMetadata(item.TokenId)
-			if err != nil {
-				return nil, err
-			}
-
-			finalPrice, err := r.MkpSc.GetFinalPrice(&bind.CallOpts{}, item.ItemId)
-			if err != nil {
-				return nil, err
-			}
-
-			items = append(items, app.MarketplaceItemDTO{
-				ItemId:       int64(i),
-				Nft:          nftItem,
-				TokenId:      item.TokenId.Int64(),
-				Price:        app.ToDecimal(item.Price, 18),
-				ListingPrice: app.ToDecimal(item.ListingPrice, 18),
-				Seller:       item.Seller,
-				IsSold:       item.IsSold,
-				TotalPrice:   app.ToDecimal(finalPrice, 18),
-			})
-		}
-
-	}
-	return items, nil
-}
-
 func (r *MarketplaceSC) GetMarketplaceItems() ([]app.MarketplaceItemDTO, error) {
 	wg := &sync.WaitGroup{}
 	count, err := r.GetItemCount()

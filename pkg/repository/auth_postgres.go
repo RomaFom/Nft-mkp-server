@@ -24,11 +24,11 @@ func (r *AuthPostgres) CreateUser(user app.User) (int, error) {
 	err := r.db.Get(&id, user_check_query, user.Username)
 
 	if err == nil {
-		return 0, errors.New("User already exists")
+		return 0, errors.New("user already exists")
 	}
 
-	query := fmt.Sprintf("INSERT INTO %s (name, username, password_hash) values ($1, $2, $3) RETURNING id", userTable)
-	row := r.db.QueryRow(query, user.Name, user.Username, user.Password)
+	query := fmt.Sprintf("INSERT INTO %s (username, password_hash) values ($1, $2) RETURNING id", userTable)
+	row := r.db.QueryRow(query, user.Username, user.Password)
 	if err := row.Scan(&id); err != nil {
 		return 0, err
 	}
@@ -37,15 +37,14 @@ func (r *AuthPostgres) CreateUser(user app.User) (int, error) {
 
 func (r *AuthPostgres) GetUser(username, password string) (app.User, error) {
 	var user app.User
-	query := fmt.Sprintf("SELECT id FROM %s WHERE username=$1 AND password_hash=$2", userTable)
+	query := fmt.Sprintf("SELECT id, username FROM %s WHERE username=$1 AND password_hash=$2", userTable)
 	err := r.db.Get(&user, query, username, password)
-
 	return user, err
 }
 
 func (r *AuthPostgres) GetUserById(id int) (app.UserPublicDTO, error) {
 	var user app.UserPublicDTO
-	query := fmt.Sprintf(`SELECT id, name, username, wallet FROM %s WHERE id=$1`, userTable)
+	query := fmt.Sprintf(`SELECT id, username, wallet FROM %s WHERE id=$1`, userTable)
 	err := r.db.Get(&user, query, id)
 	return user, err
 }

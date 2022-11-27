@@ -18,21 +18,13 @@ func (h *Handler) getItemCount(c *gin.Context) {
 }
 
 func (h *Handler) getAllItems(c *gin.Context) {
-	//count, err := h.services.Marketplace.GetItemCount()
-	//if err != nil {
-	//	newErrorResponse(c, http.StatusInternalServerError, err.Error())
-	//	return
-	//}
-
 	items, err := h.services.Marketplace.GetMarketplaceItems()
 	if err != nil {
 		newErrorResponse(c, http.StatusNotFound, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, map[string]interface{}{
-		"items": items,
-	})
+	c.JSON(http.StatusOK, items)
 }
 
 func (h *Handler) getMyListings(c *gin.Context) {

@@ -15,8 +15,9 @@ type Authorization interface {
 }
 
 type Transaction interface {
-	CreateTransaction(wallet string, transaction string) (int, error)
+	CreateTransaction(tx app.Transaction) (int, error)
 	GetAllTransactions() ([]app.Transaction, error)
+	GetNftTransactions(id int) ([]app.Transaction, error)
 }
 
 type Marketplace interface {
@@ -24,7 +25,6 @@ type Marketplace interface {
 	GetMarketplaceItems() ([]app.MarketplaceItemDTO, error)
 	GetMyListings(wallet string) ([]app.MarketplaceItemDTO, error)
 	GetMyPurchases(wallet string) ([]app.MarketplaceItemDTO, error)
-	GetItemsNoThreads() ([]app.MarketplaceItemDTO, error)
 }
 
 type Repository struct {
