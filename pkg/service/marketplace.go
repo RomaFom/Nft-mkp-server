@@ -29,3 +29,7 @@ func (s *MarketplaceService) GetMyPurchases(wallet string) ([]app.MarketplaceIte
 func (s *MarketplaceService) GetMyListings(wallet string) ([]app.MarketplaceItemDTO, error) {
 	return s.repo.GetMyListings(wallet)
 }
+
+func (s *MarketplaceService) ValidateSCItems() error {
+	return s.repo.ValidateSCItems()
+}

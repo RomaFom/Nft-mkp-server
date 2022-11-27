@@ -5,8 +5,10 @@ import (
 	mkp_api "app/pkg/MkpSc"
 	nft_api "app/pkg/NftSc"
 	"encoding/json"
+	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/jmoiron/sqlx"
 	"io"
 	"math/big"
 	"net/http"
@@ -17,12 +19,14 @@ import (
 type MarketplaceSC struct {
 	MkpSc *mkp_api.MkpApi
 	NftSc *nft_api.NftApi
+	db    *sqlx.DB
 }
 
-func NewMarketplaceSc(mkp *mkp_api.MkpApi, nft *nft_api.NftApi) *MarketplaceSC {
+func NewMarketplaceSc(mkp *mkp_api.MkpApi, nft *nft_api.NftApi, db *sqlx.DB) *MarketplaceSC {
 	return &MarketplaceSC{
 		MkpSc: mkp,
 		NftSc: nft,
+		db:    db,
 	}
 }
 
@@ -52,29 +56,29 @@ func (r *MarketplaceSC) GetMarketplaceItems() ([]app.MarketplaceItemDTO, error) 
 				return
 			}
 
-			if item.IsSold == false {
-				// Call NFT contract to get tokenURI
-				nftItem, err := r.GetNftMetadata(item.TokenId)
-				if err != nil {
-					return
-				}
-
-				finalPrice, err := r.MkpSc.GetFinalPrice(&bind.CallOpts{}, item.ItemId)
-				if err != nil {
-					return
-				}
-
-				ch <- app.MarketplaceItemDTO{
-					ItemId:       int64(i),
-					Nft:          nftItem,
-					TokenId:      item.TokenId.Int64(),
-					Price:        app.ToDecimal(item.Price, 18),
-					ListingPrice: app.ToDecimal(item.ListingPrice, 18),
-					Seller:       item.Seller,
-					IsSold:       item.IsSold,
-					TotalPrice:   app.ToDecimal(finalPrice, 18),
-				}
+			//if item.IsSold == false {
+			// Call NFT contract to get tokenURI
+			nftItem, err := r.GetNftMetadata(item.TokenId)
+			if err != nil {
+				return
 			}
+
+			finalPrice, err := r.MkpSc.GetFinalPrice(&bind.CallOpts{}, item.ItemId)
+			if err != nil {
+				return
+			}
+
+			ch <- app.MarketplaceItemDTO{
+				ItemId:       int64(i),
+				Nft:          nftItem,
+				TokenId:      item.TokenId.Int64(),
+				Price:        app.ToDecimal(item.Price, 18),
+				ListingPrice: app.ToDecimal(item.ListingPrice, 18),
+				Seller:       item.Seller,
+				IsSold:       item.IsSold,
+				TotalPrice:   app.ToDecimal(finalPrice, 18),
+			}
+			//}
 		}(i)
 	}
 
@@ -173,6 +177,7 @@ func (r *MarketplaceSC) GetMyPurchases(wallet string) ([]app.MarketplaceItemDTO,
 			if err != nil {
 				return nil, err
 			}
+			nftItem.Owner = owner
 
 			finalPrice, err := r.MkpSc.GetFinalPrice(&bind.CallOpts{}, item.ItemId)
 			if err != nil {
@@ -217,4 +222,28 @@ func (r *MarketplaceSC) GetNftMetadata(id *big.Int) (app.NftDTO, error) {
 	}
 
 	return nftItem, nil
+}
+
+func (r *MarketplaceSC) ValidateSCItems() error {
+	items, err := r.GetMarketplaceItems()
+	if err != nil {
+		return err
+	}
+
+	for _, item := range items {
+		var id int
+		query := fmt.Sprintf("INSERT INTO %s (nft_id, owner ,image, name, description) VALUES ($1, $2, $3, $4, $5) RETURNING id", nftsTable)
+		row := r.db.QueryRow(query, item.TokenId, item.Nft.Owner, item.Nft.Image, item.Nft.Name, item.Nft.Description)
+		if err := row.Scan(&id); err != nil {
+			fmt.Println("238", err)
+			return err
+		}
+		query = fmt.Sprintf("INSERT INTO %s (item_id, nft_id ,price, listing_price, total_price,seller_wallet,is_sold) VALUES ($1, $2, $3, $4, $5, $6 ,$7) RETURNING id", itemsTable)
+		row = r.db.QueryRow(query, item.ItemId, item.TokenId, item.Price, item.ListingPrice, item.TotalPrice, item.Seller, item.IsSold)
+		if err := row.Scan(&id); err != nil {
+			fmt.Println("244", err)
+			return err
+		}
+	}
+	return nil
 }

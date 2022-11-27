@@ -42,6 +42,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		marketplace.GET("/get-all", h.getAllItems)
 		marketplace.GET("/my-listings", h.userIdentity, h.getMyListings)
 		marketplace.GET("/my-purchases", h.userIdentity, h.getMyPurchases)
+		marketplace.GET("/init", h.init)
 	}
 
 	return router

@@ -17,7 +17,8 @@ type MarketplaceItemDTO struct {
 }
 
 type NftDTO struct {
-	Image       string `json:"image" binding:"required"`
-	Name        string `json:"name" binding:"required"`
-	Description string `json:"description" binding:"required"`
+	Image       string         `json:"image" binding:"required"`
+	Name        string         `json:"name" binding:"required"`
+	Description string         `json:"description" binding:"required"`
+	Owner       common.Address `json:"owner"`
 }

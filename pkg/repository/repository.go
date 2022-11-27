@@ -25,6 +25,7 @@ type Marketplace interface {
 	GetMarketplaceItems() ([]app.MarketplaceItemDTO, error)
 	GetMyListings(wallet string) ([]app.MarketplaceItemDTO, error)
 	GetMyPurchases(wallet string) ([]app.MarketplaceItemDTO, error)
+	ValidateSCItems() error
 }
 
 type Repository struct {
@@ -37,6 +38,6 @@ func NewRepository(db *sqlx.DB, mkp *mkp_api.MkpApi, nft *nft_api.NftApi) *Repos
 	return &Repository{
 		Authorization: NewAuthPostgres(db),
 		Transaction:   NewTransactionPostgres(db),
-		Marketplace:   NewMarketplaceSc(mkp, nft),
+		Marketplace:   NewMarketplaceSc(mkp, nft, db),
 	}
 }

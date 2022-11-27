@@ -9,8 +9,8 @@ CREATE TABLE users
 CREATE TABLE nfts
 (
     id serial not null unique,
-    nft_id int not null unique,
-    owner_id varchar(255) not null,
+    nft_id integer not null unique,
+    owner bytea not null,
     image varchar(255) not null,
     name varchar(255) not null,
     description varchar(255) not null
@@ -19,13 +19,13 @@ CREATE TABLE nfts
 CREATE TABLE items
 (
     id serial not null unique,
-    item_id varchar(255) not null unique,
-    nft_id int not null references nfts(nft_id),
+    item_id integer not null unique,
+    nft_id integer not null references nfts(nft_id),
     price decimal not null,
     listing_price decimal not null,
     total_price decimal not null,
-    seller_wallet varchar(255) not null,
-    seller_id int not null references users(id),
+    seller_wallet bytea not null,
+--     seller_id integer not null references users(id) default 0,
     is_sold boolean not null default false
 );
 
