@@ -37,6 +37,6 @@ CREATE TABLE transactions
     tx_hash varchar(255) not null unique,
     created_at timestamp not null default now(),
     user_id integer not null references users(id),
-    item_id integer not null references items(id),
+    item_id integer not null references items(item_id),
     nft_id integer not null references nfts(nft_id)
 );

@@ -28,3 +28,10 @@ type MarketplaceItemDTO struct {
 	Description  string          `json:"description" db:"description" binding:"required"`
 	Owner        common.Address  `json:"owner" db:"owner" binding:"required"`
 }
+
+type BuyItemInput struct {
+	TxHash string `json:"tx_hash" binding:"required"`
+	ItemId int    `json:"item_id" binding:"required"`
+	Wallet string `json:"wallet" binding:"required"`
+	NftId  int    `json:"nft_id" binding:"required"`
+}

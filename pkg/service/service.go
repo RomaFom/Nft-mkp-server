@@ -25,6 +25,7 @@ type Marketplace interface {
 	GetItemsForSale() ([]app.MarketplaceItemDTO, error)
 	GetMyListings(wallet string) ([]app.MarketplaceItemDTO, error)
 	GetMyPurchases(wallet string) ([]app.MarketplaceItemDTO, error)
+	BuyItem(itemId int) (app.MarketplaceItemDTO, error)
 	ValidateSCItems() error
 }
 

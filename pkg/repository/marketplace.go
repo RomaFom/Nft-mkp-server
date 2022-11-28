@@ -47,6 +47,38 @@ func (r *MarketplaceSC) GetItemsForSale() ([]app.MarketplaceItemDTO, error) {
 	return items, nil
 }
 
+func (r *MarketplaceSC) GetMarketplaceItemFromSCById(itemId int) (app.MarketplaceItemDTO, error) {
+	var mkpItem app.MarketplaceItemDTO
+	item, err := r.MkpSc.Items(&bind.CallOpts{}, big.NewInt(int64(itemId)))
+	if err != nil {
+		return mkpItem, err
+	}
+	nftItem, err := r.GetNftMetadata(item.TokenId)
+	if err != nil {
+		return mkpItem, err
+	}
+	finalPrice, err := r.MkpSc.GetFinalPrice(&bind.CallOpts{}, item.ItemId)
+	if err != nil {
+		return mkpItem, err
+	}
+
+	mkpItem = app.MarketplaceItemDTO{
+		ItemId: int64(itemId),
+		//Nft:          nftItem,
+		TokenId:      item.TokenId.Int64(),
+		Price:        app.ToDecimal(item.Price, 18),
+		ListingPrice: app.ToDecimal(item.ListingPrice, 18),
+		Seller:       item.Seller,
+		IsSold:       item.IsSold,
+		TotalPrice:   app.ToDecimal(finalPrice, 18),
+		Image:        nftItem.Image,
+		Name:         nftItem.Name,
+		Description:  nftItem.Description,
+		Owner:        nftItem.Owner,
+	}
+	return mkpItem, nil
+}
+
 func (r *MarketplaceSC) GetMarketplaceItemsFromSC() ([]app.MarketplaceItemDTO, error) {
 	wg := &sync.WaitGroup{}
 	count, err := r.GetItemCount()
@@ -276,6 +308,22 @@ func (r *MarketplaceSC) CheckNftInDB(nftId int64) (bool, error) {
 	return true, nil
 }
 
+func (r *MarketplaceSC) UpdateItemInDB(item app.MarketplaceItemDTO) error {
+	query := fmt.Sprintf("UPDATE %s SET owner=$1, image=$2, name=$3, description=$4 WHERE nft_id=$5", nftsTable)
+	_, err := r.db.Exec(query, item.Owner, item.Image, item.Name, item.Description, item.TokenId)
+	if err != nil {
+		logrus.Fatalf("ERROR UPDATE NFT %d", item.TokenId)
+		return err
+	}
+	query = fmt.Sprintf("UPDATE %s SET price=$1, listing_price=$2, total_price=$3, seller_wallet=$4, is_sold=$5 WHERE item_id=$6", itemsTable)
+	_, err = r.db.Exec(query, item.Price, item.ListingPrice, item.TotalPrice, item.Seller, item.IsSold, item.ItemId)
+	if err != nil {
+		logrus.Fatalf("ERROR UPDATE ITEM %d", item.ItemId)
+		return err
+	}
+	return nil
+}
+
 func (r *MarketplaceSC) ValidateSCItems(items []app.MarketplaceItemDTO) error {
 	var wg sync.WaitGroup
 	wg.Add(len(items))
@@ -288,18 +336,23 @@ func (r *MarketplaceSC) ValidateSCItems(items []app.MarketplaceItemDTO) error {
 			var id int
 			isExists, err := r.CheckNftInDB(item.TokenId)
 			if isExists {
-				query := fmt.Sprintf("UPDATE %s SET owner=$1, image=$2, name=$3, description=$4 WHERE nft_id=$5", nftsTable)
-				_, err = r.db.Exec(query, item.Owner, item.Image, item.Name, item.Description, item.TokenId)
-				if err != nil {
-					logrus.Fatalf("ERROR UPDATE NFT %d", item.TokenId)
-					return
-				}
-				query = fmt.Sprintf("UPDATE %s SET price=$1, listing_price=$2, total_price=$3, seller_wallet=$4, is_sold=$5 WHERE item_id=$6", itemsTable)
-				_, err = r.db.Exec(query, item.Price, item.ListingPrice, item.TotalPrice, item.Seller, item.IsSold, item.ItemId)
+				err = r.UpdateItemInDB(item)
 				if err != nil {
 					logrus.Fatalf("ERROR UPDATE ITEM %d", item.ItemId)
 					return
 				}
+				//query := fmt.Sprintf("UPDATE %s SET owner=$1, image=$2, name=$3, description=$4 WHERE nft_id=$5", nftsTable)
+				//_, err = r.db.Exec(query, item.Owner, item.Image, item.Name, item.Description, item.TokenId)
+				//if err != nil {
+				//	logrus.Fatalf("ERROR UPDATE NFT %d", item.TokenId)
+				//	return
+				//}
+				//query = fmt.Sprintf("UPDATE %s SET price=$1, listing_price=$2, total_price=$3, seller_wallet=$4, is_sold=$5 WHERE item_id=$6", itemsTable)
+				//_, err = r.db.Exec(query, item.Price, item.ListingPrice, item.TotalPrice, item.Seller, item.IsSold, item.ItemId)
+				//if err != nil {
+				//	logrus.Fatalf("ERROR UPDATE ITEM %d", item.ItemId)
+				//	return
+				//}
 				return
 			}
 
@@ -320,4 +373,24 @@ func (r *MarketplaceSC) ValidateSCItems(items []app.MarketplaceItemDTO) error {
 	wg.Wait()
 	logrus.Printf("Successfully validated %d items", len(items))
 	return nil
+}
+
+func (r *MarketplaceSC) BuyItem(itemId int) (app.MarketplaceItemDTO, error) {
+	item, err := r.GetMarketplaceItemFromSCById(itemId)
+	fmt.Printf("ITEM %v", item)
+	//mkpItem := app.MarketplaceItemDTO{}
+	if err != nil {
+		return item, err
+	}
+	err = r.UpdateItemInDB(item)
+	if err != nil {
+		return item, err
+	}
+	query := fmt.Sprintf(`SELECT * FROM %s it INNER JOIN %s nt ON it.nft_id = nt.nft_id WHERE it.item_id=$1`, itemsTable, nftsTable)
+
+	if err := r.db.Get(&item, query, itemId); err != nil {
+		fmt.Printf("Error: %v", err.Error())
+		return item, err
+	}
+	return item, nil
 }

@@ -30,6 +30,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	{
 		transaction.POST("/add", h.addTransaction)
 		transaction.GET("/get-all", h.getAllTransactions)
+		transaction.POST("/buy-item", h.userIdentity, h.buyItem)
 
 		nft := transaction.Group("/nft")
 		{

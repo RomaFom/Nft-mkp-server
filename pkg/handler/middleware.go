@@ -10,7 +10,7 @@ import (
 
 const (
 	authHeader = "Authorization"
-	userCtx    = "userId"
+	userCtx    = "user_Id"
 	wallet     = "wallet"
 	id         = "id"
 )

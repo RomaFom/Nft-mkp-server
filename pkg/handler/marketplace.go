@@ -17,10 +17,6 @@ func (h *Handler) getItemCount(c *gin.Context) {
 	})
 }
 
-//func (h *Handler) buyItem(c *gin.Context){
-//
-//}
-
 func (h *Handler) getAllItems(c *gin.Context) {
 	items, err := h.services.Marketplace.GetItemsForSale()
 

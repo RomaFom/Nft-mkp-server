@@ -18,8 +18,8 @@ func NewTransactionPostgres(db *sqlx.DB) *TransactionPostgres {
 
 func (r *TransactionPostgres) CreateTransaction(tx app.Transaction) (int, error) {
 	var id int
-	query := fmt.Sprintf("INSERT INTO %s (wallet, tx_hash,user_id,item_id) VALUES ($1, $2,$3,$4) RETURNING id", transactionsTable)
-	row := r.db.QueryRow(query, tx.Wallet, tx.TxHash, tx.UserId, tx.ItemId)
+	query := fmt.Sprintf("INSERT INTO %s (wallet, tx_hash,user_id,item_id,nft_id) VALUES ($1, $2,$3,$4,$5) RETURNING id", transactionsTable)
+	row := r.db.QueryRow(query, tx.Wallet, tx.TxHash, tx.UserId, tx.ItemId, tx.NftId)
 	if err := row.Scan(&id); err != nil {
 		return 0, err
 	}
