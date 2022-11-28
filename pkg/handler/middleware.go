@@ -75,3 +75,25 @@ func getId(c *gin.Context) (int, error) {
 
 	return id, nil
 }
+
+type PaginationParams struct {
+	page int
+	size int
+}
+
+func getPaginationParams(c *gin.Context) PaginationParams {
+	page, err := strconv.Atoi(c.Query("page"))
+	if err != nil {
+		page = 0
+	}
+	size, err := strconv.Atoi(c.Query("size"))
+	if err != nil {
+		size = 0
+	}
+
+	return PaginationParams{
+		page: page,
+		size: size,
+	}
+
+}

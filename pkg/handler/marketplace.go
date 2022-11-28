@@ -18,7 +18,8 @@ func (h *Handler) getItemCount(c *gin.Context) {
 }
 
 func (h *Handler) getAllItems(c *gin.Context) {
-	items, err := h.services.Marketplace.GetItemsForSale()
+	params := getPaginationParams(c)
+	items, err := h.services.Marketplace.GetItemsForSale(params.page, params.size)
 
 	if err != nil {
 		newErrorResponse(c, http.StatusNotFound, err.Error())
