@@ -26,7 +26,7 @@ CREATE TABLE items
     total_price decimal not null,
     seller_wallet bytea not null,
 --     seller_id integer not null references users(id) default 0,
-    is_sold boolean not null default false
+    is_sold bool not null default false
 );
 
 

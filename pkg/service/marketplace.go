@@ -18,8 +18,12 @@ func (s *MarketplaceService) GetItemCount() (*big.Int, error) {
 	return s.repo.GetItemCount()
 }
 
-func (s *MarketplaceService) GetMarketplaceItems() ([]app.MarketplaceItemDTO, error) {
-	return s.repo.GetMarketplaceItems()
+func (s *MarketplaceService) GetMarketplaceItemsFromSC() ([]app.MarketplaceItemDTO, error) {
+	return s.repo.GetMarketplaceItemsFromSC()
+}
+
+func (s *MarketplaceService) GetItemsForSale() ([]app.MarketplaceItemDTO, error) {
+	return s.repo.GetItemsForSale()
 }
 
 func (s *MarketplaceService) GetMyPurchases(wallet string) ([]app.MarketplaceItemDTO, error) {
@@ -31,5 +35,9 @@ func (s *MarketplaceService) GetMyListings(wallet string) ([]app.MarketplaceItem
 }
 
 func (s *MarketplaceService) ValidateSCItems() error {
-	return s.repo.ValidateSCItems()
+	items, err := s.repo.GetMarketplaceItemsFromSC()
+	if err != nil {
+		return err
+	}
+	return s.repo.ValidateSCItems(items)
 }

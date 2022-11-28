@@ -10,3 +10,6 @@ migrate -path ./schema -database 'postgres://postgres:1234@localhost:5436/postgr
 
 // Remove db
 migrate -path ./schema -database 'postgres://postgres:1234@localhost:5436/postgres?sslmode=disable' down
+
+
+// Search owner  --> owner=E'\\x70997970C51812DC3A010C7D01B50E0D17DC79C8'

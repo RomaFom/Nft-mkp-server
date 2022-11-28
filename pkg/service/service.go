@@ -21,7 +21,8 @@ type Transaction interface {
 
 type Marketplace interface {
 	GetItemCount() (*big.Int, error)
-	GetMarketplaceItems() ([]app.MarketplaceItemDTO, error)
+	GetMarketplaceItemsFromSC() ([]app.MarketplaceItemDTO, error)
+	GetItemsForSale() ([]app.MarketplaceItemDTO, error)
 	GetMyListings(wallet string) ([]app.MarketplaceItemDTO, error)
 	GetMyPurchases(wallet string) ([]app.MarketplaceItemDTO, error)
 	ValidateSCItems() error

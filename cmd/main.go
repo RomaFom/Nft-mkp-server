@@ -4,6 +4,7 @@ import (
 	"app"
 	"app/pkg/MkpSc"
 	nft_api "app/pkg/NftSc"
+	cronJobs2 "app/pkg/cronJobs"
 	"app/pkg/handler"
 	"app/pkg/repository"
 	"app/pkg/service"
@@ -12,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"github.com/robfig/cron/v3"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"os"
@@ -64,6 +66,8 @@ func main() {
 	services := service.NewService(repos)
 	handlers := handler.NewHandler(services)
 	server := new(app.Server)
+	cronJobs := cronJobs2.NewCronRunner(services)
+	cronJobs.RunCronJobs()
 
 	//cron := cron.New()
 	//cron.AddFunc("@every 3s", func() {
@@ -72,6 +76,14 @@ func main() {
 	//cron.Start()
 
 	go func() {
+
+		cron := cron.New()
+		cron.AddFunc("@every 1m", func() {
+			cronJobs.RunCronJobs()
+		})
+		go cronJobs.RunCronJobs()
+		cron.Start()
+
 		err := server.Run(viper.GetString("port"), handlers.InitRoutes())
 		if err != nil {
 			logrus.Fatalf("Error running server %s", err.Error())
