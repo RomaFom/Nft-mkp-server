@@ -67,7 +67,7 @@ func main() {
 	handlers := handler.NewHandler(services)
 	server := new(app.Server)
 	cronJobs := cronJobs2.NewCronRunner(services)
-	cronJobs.RunCronJobs()
+	//cronJobs.RunCronJobs()
 
 	//cron := cron.New()
 	//cron.AddFunc("@every 3s", func() {
@@ -75,15 +75,17 @@ func main() {
 	//})
 	//cron.Start()
 
+	cron := cron.New()
+	cron.AddFunc("@every 1m", func() {
+		cronJobs.RunCronJobs()
+	})
+	//go cronJobs.RunCronJobs()
+	//cron.Start()
+
 	go func() {
 
-		cron := cron.New()
-		cron.AddFunc("@every 1m", func() {
-			cronJobs.RunCronJobs()
-		})
 		go cronJobs.RunCronJobs()
 		cron.Start()
-
 		err := server.Run(viper.GetString("port"), handlers.InitRoutes())
 		if err != nil {
 			logrus.Fatalf("Error running server %s", err.Error())

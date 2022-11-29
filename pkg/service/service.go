@@ -26,7 +26,7 @@ type Marketplace interface {
 	GetMyListings(wallet string) ([]app.MarketplaceItemDTO, error)
 	GetMyPurchases(wallet string) ([]app.MarketplaceItemDTO, error)
 	BuyItem(itemId int) (app.MarketplaceItemDTO, error)
-	ValidateSCItems() error
+	ValidateSCItems()
 }
 
 type Service struct {

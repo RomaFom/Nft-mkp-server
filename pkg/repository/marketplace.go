@@ -84,7 +84,8 @@ func (r *MarketplaceSC) GetMarketplaceItemFromSCById(itemId int) (app.Marketplac
 }
 
 func (r *MarketplaceSC) GetMarketplaceItemsFromSC() ([]app.MarketplaceItemDTO, error) {
-	wg := &sync.WaitGroup{}
+	wg := sync.WaitGroup{}
+	var m sync.Mutex
 	count, err := r.GetItemCount()
 	if err != nil {
 		return nil, err
@@ -95,17 +96,15 @@ func (r *MarketplaceSC) GetMarketplaceItemsFromSC() ([]app.MarketplaceItemDTO, e
 	ch := make(chan app.MarketplaceItemDTO)
 
 	for i := 1; i <= int(count.Int64()); i++ {
-		//wg.Add(1)
-		go func(i int) {
+		go func(i int, wg *sync.WaitGroup, m *sync.Mutex) {
 			defer wg.Done()
 			// Get item from marketplace Contract
+			m.Lock()
 			item, err := r.MkpSc.Items(&bind.CallOpts{}, big.NewInt(int64(i)))
+			m.Unlock()
 			if err != nil {
 				return
 			}
-
-			//if item.IsSold == false {
-			// Call NFT contract to get tokenURI
 			nftItem, err := r.GetNftMetadata(item.TokenId)
 			if err != nil {
 				return
@@ -131,7 +130,7 @@ func (r *MarketplaceSC) GetMarketplaceItemsFromSC() ([]app.MarketplaceItemDTO, e
 				Owner:        nftItem.Owner,
 			}
 			//}
-		}(i)
+		}(i, &wg, &m)
 	}
 
 	go func() {
@@ -142,7 +141,6 @@ func (r *MarketplaceSC) GetMarketplaceItemsFromSC() ([]app.MarketplaceItemDTO, e
 	for item := range ch {
 		items = append(items, item)
 	}
-
 	return items, nil
 }
 
@@ -301,15 +299,14 @@ func (r *MarketplaceSC) CheckItemInDB(itemId int64) (bool, error) {
 	return true, nil
 }
 
-func (r *MarketplaceSC) CheckNftInDB(nftId int64) (bool, error) {
+func (r *MarketplaceSC) CheckNftInDB(nftId int) (int, error) {
 	var id int
 	query := fmt.Sprintf("SELECT id FROM %s WHERE nft_id=$1", nftsTable)
-	err := r.db.Get(&id, query, nftId)
+	err := r.db.QueryRow(query, nftId).Scan(&id)
 	if err != nil {
-
-		return false, err
+		id = 0
 	}
-	return true, nil
+	return id, nil
 }
 
 func (r *MarketplaceSC) UpdateItemInDB(item app.MarketplaceItemDTO) error {
@@ -333,7 +330,8 @@ func (r *MarketplaceSC) SaveItemToDB(item app.MarketplaceItemDTO) error {
 	query := fmt.Sprintf("INSERT INTO %s (nft_id, owner ,image, name, description) VALUES ($1, $2, $3, $4, $5) RETURNING id", nftsTable)
 	row := r.db.QueryRow(query, item.TokenId, item.Owner, item.Image, item.Name, item.Description)
 	if err := row.Scan(&id); err != nil {
-		logrus.Fatalf("ERROR ADD NFT %d", item.TokenId)
+		logrus.Fatalf("ERROR ADD NFT %d %v", item.TokenId, err.Error())
+		//logrus.Println("ERROR %v", err.Error())
 		return err
 	}
 	query = fmt.Sprintf("INSERT INTO %s (item_id, nft_id ,price, listing_price, total_price,seller_wallet,is_sold) VALUES ($1, $2, $3, $4, $5, $6 ,$7) RETURNING id", itemsTable)
@@ -348,31 +346,28 @@ func (r *MarketplaceSC) SaveItemToDB(item app.MarketplaceItemDTO) error {
 func (r *MarketplaceSC) ValidateSCItems(items []app.MarketplaceItemDTO) error {
 	var wg sync.WaitGroup
 	wg.Add(len(items))
-	logrus.Printf("Starting validate items go routines num %d", len(items))
+	logrus.Printf("Starting indexing items.. size %d", len(items))
 
 	for i := 0; i < len(items); i++ {
-		go func(i int) {
-			defer wg.Done()
-			item := items[i]
-			//var id int
-			isExists, err := r.CheckNftInDB(item.TokenId)
-			if isExists {
-				err = r.UpdateItemInDB(item)
-				if err != nil {
-					logrus.Fatalf("ERROR UPDATE ITEM %d", item.ItemId)
-					return
-				}
-				return
-			}
-			err = r.SaveItemToDB(item)
+		item := items[i]
+		isExists, err := r.CheckNftInDB(int(item.TokenId))
+		if err != nil {
+			logrus.Fatalf("ERROR CHECK NFT %d", err)
+		}
+		if isExists != 0 {
+			err = r.UpdateItemInDB(item)
 			if err != nil {
-				logrus.Fatalf("ERROR ADD ITEM %d", item.ItemId)
-				return
+				logrus.Fatalf("ERROR UPDATE ITEM %d", item.ItemId)
 			}
-		}(i)
+			continue
+		}
+
+		err = r.SaveItemToDB(item)
+		if err != nil {
+			logrus.Fatalf("ERROR ADD ITEM %d", item.ItemId)
+		}
 	}
-	wg.Wait()
-	logrus.Printf("Successfully validated %d items", len(items))
+	logrus.Printf("Successfully indexed %d items", len(items))
 	return nil
 }
 

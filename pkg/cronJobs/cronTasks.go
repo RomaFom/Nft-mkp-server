@@ -16,7 +16,7 @@ func NewCronRunner(services *service.Service) *Cron {
 	return &Cron{services: services}
 }
 
-func (c *Cron) RunCronJobs() error {
-	return c.services.Marketplace.ValidateSCItems()
-
+func (c *Cron) RunCronJobs() {
+	c.services.Marketplace.ValidateSCItems()
+	//return nil
 }

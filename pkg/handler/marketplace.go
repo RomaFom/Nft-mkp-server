@@ -65,9 +65,9 @@ func (h *Handler) getMyPurchases(c *gin.Context) {
 }
 
 func (h *Handler) init(c *gin.Context) {
-	err := h.services.ValidateSCItems()
-	if err != nil {
-		newErrorResponse(c, http.StatusNotFound, "Error validating items")
-		return
-	}
+	h.services.ValidateSCItems()
+	//if err != nil {
+	//	newErrorResponse(c, http.StatusNotFound, "Error validating items")
+	//	return
+	//}
 }

@@ -3,6 +3,7 @@ package service
 import (
 	"app"
 	"app/pkg/repository"
+	"fmt"
 	"math/big"
 )
 
@@ -38,10 +39,14 @@ func (s *MarketplaceService) BuyItem(itemId int) (app.MarketplaceItemDTO, error)
 	return s.repo.BuyItem(itemId)
 }
 
-func (s *MarketplaceService) ValidateSCItems() error {
+func (s *MarketplaceService) ValidateSCItems() {
 	items, err := s.repo.GetMarketplaceItemsFromSC()
+	fmt.Println("items", len(items))
 	if err != nil {
-		return err
+		fmt.Printf("Error getting items from SC: %v", err)
 	}
-	return s.repo.ValidateSCItems(items)
+	err = s.repo.ValidateSCItems(items)
+	if err != nil {
+		fmt.Printf("Error validating items: %v", err)
+	}
 }
