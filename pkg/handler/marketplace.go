@@ -58,16 +58,10 @@ func (h *Handler) getMyPurchases(c *gin.Context) {
 		newErrorResponse(c, http.StatusNotFound, err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, map[string]interface{}{
-		"items": items,
-	})
+	c.JSON(http.StatusOK, items)
 
 }
 
 func (h *Handler) init(c *gin.Context) {
 	h.services.ValidateSCItems()
-	//if err != nil {
-	//	newErrorResponse(c, http.StatusNotFound, "Error validating items")
-	//	return
-	//}
 }

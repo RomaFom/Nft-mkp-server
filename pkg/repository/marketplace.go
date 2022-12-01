@@ -209,52 +209,16 @@ func (r *MarketplaceSC) GetMyPurchases(wallet string) ([]app.MarketplaceItemDTO,
 	var items []app.MarketplaceItemDTO
 	address := common.HexToAddress(wallet)
 
-	bought, err := r.MkpSc.FilterBought(&bind.FilterOpts{}, nil, nil, []common.Address{address})
-	if err != nil {
+	query := fmt.Sprintf(`SELECT * FROM %s it INNER JOIN %s nt ON it.nft_id = nt.nft_id WHERE it.is_sold=true AND nt.owner=$1 ORDER BY it.item_id`, itemsTable, nftsTable)
+	//if page > 0 && size > 0 {
+	//	offset := (page - 1) * size
+	//	query = fmt.Sprintf(`SELECT * FROM %s it INNER JOIN %s nt ON it.nft_id = nt.nft_id WHERE it.is_sold=false ORDER BY it.item_id LIMIT %d  OFFSET %d`, itemsTable, nftsTable, size, offset)
+	//}
+
+	if err := r.db.Select(&items, query, address); err != nil {
+		fmt.Printf("Error: %v", err.Error())
 		return nil, err
 	}
-
-	for bought.Next() {
-		item, err := r.MkpSc.Items(&bind.CallOpts{}, bought.Event.ItemId)
-		if err != nil {
-			return nil, err
-		}
-		owner, err := r.NftSc.GetOwner(&bind.CallOpts{}, item.TokenId)
-		if err != nil {
-			return nil, err
-		}
-
-		if strings.ToLower(owner.String()) == strings.ToLower(wallet) {
-
-			// Call NFT contract to get tokenURI
-			nftItem, err := r.GetNftMetadata(item.TokenId)
-			if err != nil {
-				return nil, err
-			}
-			nftItem.Owner = owner
-
-			finalPrice, err := r.MkpSc.GetFinalPrice(&bind.CallOpts{}, item.ItemId)
-			if err != nil {
-				return nil, err
-			}
-
-			items = append(items, app.MarketplaceItemDTO{
-				ItemId: item.ItemId.Int64(),
-				//Nft:          nftItem,
-				TokenId:      item.TokenId.Int64(),
-				Price:        app.ToDecimal(item.Price, 18),
-				ListingPrice: app.ToDecimal(item.ListingPrice, 18),
-				Seller:       item.Seller,
-				IsSold:       item.IsSold,
-				TotalPrice:   app.ToDecimal(finalPrice, 18),
-				Image:        nftItem.Image,
-				Name:         nftItem.Name,
-				Description:  nftItem.Description,
-				Owner:        nftItem.Owner,
-			})
-		}
-	}
-
 	return items, nil
 }
 
