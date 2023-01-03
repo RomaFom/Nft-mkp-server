@@ -36,32 +36,10 @@ func (r *MarketplaceSC) GetItemCount() (*big.Int, error) {
 	return count, err
 }
 
-func (r *MarketplaceSC) GetItemsForSale(page int, size int) ([]app.MarketplaceItemDTO, error) {
+func (r *MarketplaceSC) QueryDbForItems(query string) ([]app.CombinedItemDTO, error) {
+	var items []app.CombinedItemDTO
 
-	var items []app.MarketplaceItemDTO
-
-	var test []app.CombinedItemDTO
-
-	testquery := `
-	SELECT
-	    i.id AS "id",
-		i.item_id AS "item_id",
-		i.nft_id AS "nft_id",
-		i.price AS "price",
-		i.listing_price AS "listing_price",
-		i.total_price AS "total_price",
-		i.seller_wallet AS "seller_wallet",
-		i.is_sold AS "is_sold",
-		n.nft_id AS "nft_id",
-		n.name AS "name",
-		n.description AS "description",
-		n.image AS "image",
-		n.owner AS "owner"
-	FROM items i
-	JOIN nfts n ON i.nft_id = n.nft_id;
-`
-
-	rows, err := r.db.Queryx(testquery)
+	rows, err := r.db.Queryx(query)
 	if err != nil {
 		return nil, err
 	}
@@ -94,22 +72,23 @@ func (r *MarketplaceSC) GetItemsForSale(page int, size int) ([]app.MarketplaceIt
 				Owner:       item.Owner,
 			},
 		}
-		test = append(test, newItem)
+		items = append(items, newItem)
 
 	}
+	return items, nil
+}
 
-	fmt.Println(test)
-
-	//query := fmt.Sprintf(`SELECT * FROM %s it INNER JOIN %s nt ON it.nft_id = nt.nft_id WHERE it.is_sold=false ORDER BY it.item_id`, itemsTable, nftsTable)
-	//if page > 0 && size > 0 {
-	//	offset := (page - 1) * size
-	//	query = fmt.Sprintf(`SELECT * FROM %s it INNER JOIN %s nt ON it.nft_id = nt.nft_id WHERE it.is_sold=false ORDER BY it.item_id LIMIT %d  OFFSET %d`, itemsTable, nftsTable, size, offset)
-	//}
-	//
-	//if err := r.db.Select(&items, query); err != nil {
-	//	fmt.Printf("Error: %v", err.Error())
-	//	return nil, err
-	//}
+func (r *MarketplaceSC) GetItemsForSale(page int, size int) ([]app.CombinedItemDTO, error) {
+	var items []app.CombinedItemDTO
+	query := fmt.Sprintf(`SELECT * FROM %s it INNER JOIN %s nft ON it.nft_id = nft.nft_id WHERE it.is_sold=false ORDER BY it.item_id`, itemsTable, nftsTable)
+	if page >= 0 && size > 0 {
+		offset := page * size
+		query = fmt.Sprintf(`SELECT * FROM %s it INNER JOIN %s nft ON it.nft_id = nft.nft_id WHERE it.is_sold=false ORDER BY it.item_id LIMIT %d  OFFSET %d`, itemsTable, nftsTable, size, offset)
+	}
+	items, err := r.QueryDbForItems(query)
+	if err != nil {
+		return nil, err
+	}
 	return items, nil
 }
 

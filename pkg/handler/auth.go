@@ -6,6 +6,14 @@ import (
 	"net/http"
 )
 
+// @Summary Sign Up
+// @Tags auth
+// @Description Sign Up
+// @Accept  json
+// @Produce  json
+// @Param input body app.User true "Sign Up"
+// @Success 200 {object} map[string]interface{}
+// @Router /auth/registration [post]
 func (h *Handler) signUp(c *gin.Context) {
 	var input app.User
 

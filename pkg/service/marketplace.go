@@ -23,7 +23,7 @@ func (s *MarketplaceService) GetMarketplaceItemsFromSC() ([]app.MarketplaceItemD
 	return s.repo.GetMarketplaceItemsFromSC()
 }
 
-func (s *MarketplaceService) GetItemsForSale(page int, size int) ([]app.MarketplaceItemDTO, error) {
+func (s *MarketplaceService) GetItemsForSale(page int, size int) ([]app.CombinedItemDTO, error) {
 	return s.repo.GetItemsForSale(page, size)
 }
 

@@ -23,7 +23,7 @@ type Transaction interface {
 type Marketplace interface {
 	GetItemCount() (*big.Int, error)
 	GetMarketplaceItemsFromSC() ([]app.MarketplaceItemDTO, error)
-	GetItemsForSale(page int, size int) ([]app.MarketplaceItemDTO, error)
+	GetItemsForSale(page int, size int) ([]app.CombinedItemDTO, error)
 	GetMyListings(wallet string) ([]app.MarketplaceItemDTO, error)
 	GetMyPurchases(wallet string) ([]app.MarketplaceItemDTO, error)
 	BuyItem(itemId int) (app.MarketplaceItemDTO, error)

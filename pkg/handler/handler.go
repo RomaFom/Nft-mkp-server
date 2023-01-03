@@ -1,9 +1,12 @@
 package handler
 
 import (
+	_ "app/docs"
 	"app/pkg/service"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type Handler struct {
@@ -14,12 +17,13 @@ func NewHandler(services *service.Service) *Handler {
 	return &Handler{services: services}
 }
 func (h *Handler) InitRoutes() *gin.Engine {
-	router := gin.New()
+	router := gin.Default()
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"},
 		AllowMethods: []string{"*"},
 		AllowHeaders: []string{"*"},
 	}))
+	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	auth := router.Group("/auth")
 	{
 		auth.POST("/registration", h.signUp)

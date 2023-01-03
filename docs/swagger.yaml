@@ -1,0 +1,54 @@
+basePath: /
+definitions:
+  app.User:
+    properties:
+      id:
+        type: integer
+      password:
+        minLength: 6
+        type: string
+      username:
+        description: Name     string `json:"name" binding:"required"`
+        type: string
+      wallet:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API Server for NFT's marketplace.
+  title: NFT Marketplace API
+  version: "1.0"
+paths:
+  /auth/registration:
+    post:
+      consumes:
+      - application/json
+      description: Sign Up
+      parameters:
+      - description: Sign Up
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/app.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Sign Up
+      tags:
+      - auth
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

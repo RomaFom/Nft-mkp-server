@@ -4,7 +4,7 @@ import (
 	"app"
 	"app/pkg/MkpSc"
 	nft_api "app/pkg/NftSc"
-	cronJobs2 "app/pkg/cronJobs"
+	cronJobs "app/pkg/cronJobs"
 	"app/pkg/handler"
 	"app/pkg/repository"
 	"app/pkg/service"
@@ -20,6 +20,17 @@ import (
 	"os/signal"
 	"syscall"
 )
+
+// @title NFT Marketplace API
+// @version 1.0
+// @description API Server for NFT's marketplace.
+
+// @host localhost:8080
+// @BasePath /
+
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 
 func main() {
 
@@ -66,26 +77,17 @@ func main() {
 	services := service.NewService(repos)
 	handlers := handler.NewHandler(services)
 	server := new(app.Server)
-	cronJobs := cronJobs2.NewCronRunner(services)
-	//cronJobs.RunCronJobs()
+	cron_jobs := cronJobs.NewCronRunner(services)
 
-	//cron := cron.New()
-	//cron.AddFunc("@every 3s", func() {
-	//	fmt.Println("cron")
-	//})
-	//cron.Start()
-
-	cron := cron.New()
-	cron.AddFunc("@every 1m", func() {
-		cronJobs.RunCronJobs()
+	appCron := cron.New()
+	appCron.AddFunc("@every 1m", func() {
+		cron_jobs.RunCronJobs()
 	})
-	//go cronJobs.RunCronJobs()
-	//cron.Start()
 
 	go func() {
 
-		go cronJobs.RunCronJobs()
-		cron.Start()
+		go cron_jobs.RunCronJobs()
+		appCron.Start()
 		err := server.Run(viper.GetString("port"), handlers.InitRoutes())
 		if err != nil {
 			logrus.Fatalf("Error running server %s", err.Error())
