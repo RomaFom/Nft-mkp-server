@@ -37,17 +37,79 @@ func (r *MarketplaceSC) GetItemCount() (*big.Int, error) {
 }
 
 func (r *MarketplaceSC) GetItemsForSale(page int, size int) ([]app.MarketplaceItemDTO, error) {
-	var items []app.MarketplaceItemDTO
-	query := fmt.Sprintf(`SELECT * FROM %s it INNER JOIN %s nt ON it.nft_id = nt.nft_id WHERE it.is_sold=false ORDER BY it.item_id`, itemsTable, nftsTable)
-	if page > 0 && size > 0 {
-		offset := (page - 1) * size
-		query = fmt.Sprintf(`SELECT * FROM %s it INNER JOIN %s nt ON it.nft_id = nt.nft_id WHERE it.is_sold=false ORDER BY it.item_id LIMIT %d  OFFSET %d`, itemsTable, nftsTable, size, offset)
-	}
 
-	if err := r.db.Select(&items, query); err != nil {
-		fmt.Printf("Error: %v", err.Error())
+	var items []app.MarketplaceItemDTO
+
+	var test []app.CombinedItemDTO
+
+	testquery := `
+	SELECT
+	    i.id AS "id",
+		i.item_id AS "item_id",
+		i.nft_id AS "nft_id",
+		i.price AS "price",
+		i.listing_price AS "listing_price",
+		i.total_price AS "total_price",
+		i.seller_wallet AS "seller_wallet",
+		i.is_sold AS "is_sold",
+		n.nft_id AS "nft_id",
+		n.name AS "name",
+		n.description AS "description",
+		n.image AS "image",
+		n.owner AS "owner"
+	FROM items i
+	JOIN nfts n ON i.nft_id = n.nft_id;
+`
+
+	rows, err := r.db.Queryx(testquery)
+	if err != nil {
 		return nil, err
 	}
+
+	for rows.Next() {
+		// Here is StructScan
+		var item app.MarketplaceItemDTO
+
+		// Here is a try to create a object with nft property
+		var newItem app.CombinedItemDTO
+
+		if err := rows.StructScan(&item); err != nil {
+			fmt.Printf("Error: %v", err.Error())
+			return nil, err
+		}
+		newItem = app.CombinedItemDTO{
+			Id:           item.Id,
+			ItemId:       item.ItemId,
+			TokenId:      item.TokenId,
+			Price:        item.Price,
+			ListingPrice: item.ListingPrice,
+			TotalPrice:   item.TotalPrice,
+			Seller:       item.Seller,
+			IsSold:       item.IsSold,
+			Nft: app.NftDTO{
+				NftId:       item.TokenId,
+				Name:        item.Name,
+				Description: item.Description,
+				Image:       item.Image,
+				Owner:       item.Owner,
+			},
+		}
+		test = append(test, newItem)
+
+	}
+
+	fmt.Println(test)
+
+	//query := fmt.Sprintf(`SELECT * FROM %s it INNER JOIN %s nt ON it.nft_id = nt.nft_id WHERE it.is_sold=false ORDER BY it.item_id`, itemsTable, nftsTable)
+	//if page > 0 && size > 0 {
+	//	offset := (page - 1) * size
+	//	query = fmt.Sprintf(`SELECT * FROM %s it INNER JOIN %s nt ON it.nft_id = nt.nft_id WHERE it.is_sold=false ORDER BY it.item_id LIMIT %d  OFFSET %d`, itemsTable, nftsTable, size, offset)
+	//}
+	//
+	//if err := r.db.Select(&items, query); err != nil {
+	//	fmt.Printf("Error: %v", err.Error())
+	//	return nil, err
+	//}
 	return items, nil
 }
 
