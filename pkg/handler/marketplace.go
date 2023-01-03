@@ -48,12 +48,13 @@ func (h *Handler) getMyListings(c *gin.Context) {
 }
 
 func (h *Handler) getMyPurchases(c *gin.Context) {
+	params := getPaginationParams(c)
 	wallet, err := h.getUserWallet(c)
 	if err != nil {
 		return
 	}
 
-	items, err := h.services.Marketplace.GetMyPurchases(wallet)
+	items, err := h.services.Marketplace.GetMyPurchases(wallet, params.page, params.size)
 	if err != nil {
 		newErrorResponse(c, http.StatusNotFound, err.Error())
 		return

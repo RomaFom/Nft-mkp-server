@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 	"io"
@@ -79,7 +78,7 @@ func (r *MarketplaceSC) QueryDbForItems(query string) ([]app.CombinedItemDTO, er
 }
 
 func (r *MarketplaceSC) GetItemsForSale(page int, size int) ([]app.CombinedItemDTO, error) {
-	var items []app.CombinedItemDTO
+
 	query := fmt.Sprintf(`SELECT * FROM %s it INNER JOIN %s nft ON it.nft_id = nft.nft_id WHERE it.is_sold=false ORDER BY it.item_id`, itemsTable, nftsTable)
 	if page >= 0 && size > 0 {
 		offset := page * size
@@ -246,20 +245,19 @@ func (r *MarketplaceSC) GetMyListings(wallet string) ([]app.MarketplaceItemDTO, 
 	return items, nil
 }
 
-func (r *MarketplaceSC) GetMyPurchases(wallet string) ([]app.MarketplaceItemDTO, error) {
-	var items []app.MarketplaceItemDTO
-	address := common.HexToAddress(wallet)
+func (r *MarketplaceSC) GetMyPurchases(wallet string, page int, size int) ([]app.CombinedItemDTO, error) {
+	wallet = strings.ToUpper(wallet)
 
-	query := fmt.Sprintf(`SELECT * FROM %s it INNER JOIN %s nt ON it.nft_id = nt.nft_id WHERE it.is_sold=true AND nt.owner=$1 ORDER BY it.item_id`, itemsTable, nftsTable)
-	//if page > 0 && size > 0 {
-	//	offset := (page - 1) * size
-	//	query = fmt.Sprintf(`SELECT * FROM %s it INNER JOIN %s nt ON it.nft_id = nt.nft_id WHERE it.is_sold=false ORDER BY it.item_id LIMIT %d  OFFSET %d`, itemsTable, nftsTable, size, offset)
-	//}
-
-	if err := r.db.Select(&items, query, address); err != nil {
-		fmt.Printf("Error: %v", err.Error())
+	query := fmt.Sprintf(`SELECT * FROM %s it INNER JOIN %s nft ON it.nft_id = nft.nft_id WHERE it.is_sold=true AND nft.owner='%s' ORDER BY it.item_id`, itemsTable, nftsTable, wallet)
+	if page >= 0 && size > 0 {
+		offset := page * size
+		query = fmt.Sprintf(`SELECT * FROM %s it INNER JOIN %s nft ON it.nft_id = nft.nft_id WHERE it.is_sold=true AND nft.owner='%s' ORDER BY it.item_id LIMIT %d OFFSET %d`, itemsTable, nftsTable, wallet, size, offset)
+	}
+	items, err := r.QueryDbForItems(query)
+	if err != nil {
 		return nil, err
 	}
+
 	return items, nil
 }
 
@@ -271,7 +269,7 @@ func (r *MarketplaceSC) GetNftMetadata(id *big.Int) (app.NftDTO, error) {
 	if err != nil {
 		return nftItem, err
 	}
-	nftItem.Owner = owner
+	nftItem.Owner = owner.String()
 
 	// Get token URI from NFT contract
 	tokenURI, _ := r.NftSc.TokenURI(&bind.CallOpts{}, id)
@@ -316,7 +314,7 @@ func (r *MarketplaceSC) CheckNftInDB(nftId int) (int, error) {
 
 func (r *MarketplaceSC) UpdateItemInDB(item app.MarketplaceItemDTO) error {
 	query := fmt.Sprintf("UPDATE %s SET owner=$1, image=$2, name=$3, description=$4 WHERE nft_id=$5", nftsTable)
-	_, err := r.db.Exec(query, item.Owner, item.Image, item.Name, item.Description, item.TokenId)
+	_, err := r.db.Exec(query, strings.ToUpper(item.Owner), item.Image, item.Name, item.Description, item.TokenId)
 	if err != nil {
 		logrus.Fatalf("ERROR UPDATE NFT %d", item.TokenId)
 		return err
@@ -333,7 +331,7 @@ func (r *MarketplaceSC) UpdateItemInDB(item app.MarketplaceItemDTO) error {
 func (r *MarketplaceSC) SaveItemToDB(item app.MarketplaceItemDTO) error {
 	var id int
 	query := fmt.Sprintf("INSERT INTO %s (nft_id, owner ,image, name, description) VALUES ($1, $2, $3, $4, $5) RETURNING id", nftsTable)
-	row := r.db.QueryRow(query, item.TokenId, item.Owner, item.Image, item.Name, item.Description)
+	row := r.db.QueryRow(query, item.TokenId, strings.ToUpper(item.Owner), item.Image, item.Name, item.Description)
 	if err := row.Scan(&id); err != nil {
 		logrus.Fatalf("ERROR ADD NFT %d %v", item.TokenId, err.Error())
 		//logrus.Println("ERROR %v", err.Error())

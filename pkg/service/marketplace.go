@@ -27,8 +27,8 @@ func (s *MarketplaceService) GetItemsForSale(page int, size int) ([]app.Combined
 	return s.repo.GetItemsForSale(page, size)
 }
 
-func (s *MarketplaceService) GetMyPurchases(wallet string) ([]app.MarketplaceItemDTO, error) {
-	return s.repo.GetMyPurchases(wallet)
+func (s *MarketplaceService) GetMyPurchases(wallet string, page int, size int) ([]app.CombinedItemDTO, error) {
+	return s.repo.GetMyPurchases(wallet, page, size)
 }
 
 func (s *MarketplaceService) GetMyListings(wallet string) ([]app.MarketplaceItemDTO, error) {

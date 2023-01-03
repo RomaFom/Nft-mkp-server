@@ -6,12 +6,12 @@ import (
 )
 
 type NftDTO struct {
-	Id          int            `json:"-" db:"id"`
-	NftId       int64          `json:"nft_id" db:"nft_id" binding:"required"`
-	Owner       common.Address `json:"owner" db:"owner" binding:"required"`
-	Image       string         `json:"image" db:"image" binding:"required"`
-	Name        string         `json:"name" db:"name" binding:"required"`
-	Description string         `json:"description" db:"description" binding:"required"`
+	Id          int    `json:"-" db:"id"`
+	NftId       int64  `json:"nft_id" db:"nft_id" binding:"required"`
+	Owner       string `json:"owner" db:"owner" binding:"required"`
+	Image       string `json:"image" db:"image" binding:"required"`
+	Name        string `json:"name" db:"name" binding:"required"`
+	Description string `json:"description" db:"description" binding:"required"`
 }
 
 type MarketplaceItemDTO struct {
@@ -26,7 +26,7 @@ type MarketplaceItemDTO struct {
 	Image        string          `json:"image" db:"image" binding:"required"`
 	Name         string          `json:"name" db:"name" binding:"required"`
 	Description  string          `json:"description" db:"description" binding:"required"`
-	Owner        common.Address  `json:"owner" db:"owner" binding:"required"`
+	Owner        string          `json:"owner" db:"owner" binding:"required"`
 }
 
 type CombinedItemDTO struct {
