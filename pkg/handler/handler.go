@@ -33,9 +33,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	}
 	transaction := router.Group("/transaction")
 	{
-		transaction.POST("/add", h.addTransaction)
-		transaction.GET("/get-all", h.getAllTransactions)
-		transaction.POST("/buy-item", h.userIdentity, h.buyItem)
+		transaction.GET("/", h.getAllTransactions)
+		transaction.POST("/", h.userIdentity, h.walletIdentity, h.sendTx)
 
 		nft := transaction.Group("/nft")
 		{
@@ -46,8 +45,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	{
 		marketplace.GET("/item-count", h.getItemCount)
 		marketplace.GET("/get-all", h.getAllItems)
-		marketplace.GET("/my-listings", h.userIdentity, h.getMyListings)
-		marketplace.GET("/my-purchases", h.userIdentity, h.getMyPurchases)
+		marketplace.GET("/my-listings", h.userIdentity, h.walletIdentity, h.getMyListings)
+		marketplace.GET("/my-purchases", h.userIdentity, h.walletIdentity, h.getMyPurchases)
 		marketplace.GET("/init", h.init)
 	}
 

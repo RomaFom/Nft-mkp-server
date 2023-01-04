@@ -35,8 +35,8 @@ func (s *MarketplaceService) GetMyListings(wallet string) ([]app.MarketplaceItem
 	return s.repo.GetMyListings(wallet)
 }
 
-func (s *MarketplaceService) BuyItem(itemId int) (app.MarketplaceItemDTO, error) {
-	return s.repo.BuyItem(itemId)
+func (s *MarketplaceService) UpdateItemFromSC(itemId int) (app.CombinedItemDTO, error) {
+	return s.repo.UpdateItemFromSC(itemId)
 }
 
 func (s *MarketplaceService) ValidateSCItems() {

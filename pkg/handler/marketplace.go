@@ -30,10 +30,7 @@ func (h *Handler) getAllItems(c *gin.Context) {
 }
 
 func (h *Handler) getMyListings(c *gin.Context) {
-	wallet, err := h.getUserWallet(c)
-	if err != nil {
-		return
-	}
+	wallet := c.GetHeader(wallet)
 
 	items, err := h.services.Marketplace.GetMyListings(wallet)
 	if err != nil {
@@ -49,10 +46,7 @@ func (h *Handler) getMyListings(c *gin.Context) {
 
 func (h *Handler) getMyPurchases(c *gin.Context) {
 	params := getPaginationParams(c)
-	wallet, err := h.getUserWallet(c)
-	if err != nil {
-		return
-	}
+	wallet := c.GetHeader(wallet)
 
 	items, err := h.services.Marketplace.GetMyPurchases(wallet, params.page, params.size)
 	if err != nil {

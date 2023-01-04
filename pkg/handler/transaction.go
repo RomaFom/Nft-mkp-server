@@ -67,19 +67,19 @@ func (h *Handler) getNftTransactions(c *gin.Context) {
 
 }
 
-func (h *Handler) buyItem(c *gin.Context) {
-	userId, err := getUserId(c)
-	if err != nil {
-		return
-	}
+func (h *Handler) sendTx(c *gin.Context) {
+	userId := getUserId(c)
+	wallet := c.GetHeader(wallet)
+
 	var input app.BuyItemInput
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
+
 	tx := app.Transaction{
 		TxHash: input.TxHash,
-		Wallet: input.Wallet,
+		Wallet: wallet,
 		UserId: userId,
 		ItemId: input.ItemId,
 		NftId:  input.NftId,
@@ -92,7 +92,7 @@ func (h *Handler) buyItem(c *gin.Context) {
 		return
 	}
 
-	item, err := h.services.Marketplace.BuyItem(input.ItemId)
+	item, err := h.services.Marketplace.UpdateItemFromSC(input.ItemId)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return

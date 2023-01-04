@@ -65,10 +65,7 @@ func (h *Handler) signIn(c *gin.Context) {
 }
 
 func (h *Handler) GetUserData(c *gin.Context) {
-	userId, err := getUserId(c)
-	if err != nil {
-		return
-	}
+	userId := getUserId(c)
 	user, err := h.services.Authorization.GetUserById(userId)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())

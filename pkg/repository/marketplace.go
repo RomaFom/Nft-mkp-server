@@ -35,6 +35,28 @@ func (r *MarketplaceSC) GetItemCount() (*big.Int, error) {
 	return count, err
 }
 
+func CreateCombinedItemDTO(item app.MarketplaceItemDTO) app.CombinedItemDTO {
+	var newItem app.CombinedItemDTO
+	newItem = app.CombinedItemDTO{
+		Id:           item.Id,
+		ItemId:       item.ItemId,
+		TokenId:      item.TokenId,
+		Price:        item.Price,
+		ListingPrice: item.ListingPrice,
+		TotalPrice:   item.TotalPrice,
+		Seller:       item.Seller,
+		IsSold:       item.IsSold,
+		Nft: app.NftDTO{
+			NftId:       item.TokenId,
+			Name:        item.Name,
+			Description: item.Description,
+			Image:       item.Image,
+			Owner:       item.Owner,
+		},
+	}
+	return newItem
+}
+
 func (r *MarketplaceSC) QueryDbForItems(query string) ([]app.CombinedItemDTO, error) {
 	var items []app.CombinedItemDTO
 
@@ -54,23 +76,24 @@ func (r *MarketplaceSC) QueryDbForItems(query string) ([]app.CombinedItemDTO, er
 			fmt.Printf("Error: %v", err.Error())
 			return nil, err
 		}
-		newItem = app.CombinedItemDTO{
-			Id:           item.Id,
-			ItemId:       item.ItemId,
-			TokenId:      item.TokenId,
-			Price:        item.Price,
-			ListingPrice: item.ListingPrice,
-			TotalPrice:   item.TotalPrice,
-			Seller:       item.Seller,
-			IsSold:       item.IsSold,
-			Nft: app.NftDTO{
-				NftId:       item.TokenId,
-				Name:        item.Name,
-				Description: item.Description,
-				Image:       item.Image,
-				Owner:       item.Owner,
-			},
-		}
+		newItem = CreateCombinedItemDTO(item)
+		//newItem = app.CombinedItemDTO{
+		//	Id:           item.Id,
+		//	ItemId:       item.ItemId,
+		//	TokenId:      item.TokenId,
+		//	Price:        item.Price,
+		//	ListingPrice: item.ListingPrice,
+		//	TotalPrice:   item.TotalPrice,
+		//	Seller:       item.Seller,
+		//	IsSold:       item.IsSold,
+		//	Nft: app.NftDTO{
+		//		NftId:       item.TokenId,
+		//		Name:        item.Name,
+		//		Description: item.Description,
+		//		Image:       item.Image,
+		//		Owner:       item.Owner,
+		//	},
+		//}
 		items = append(items, newItem)
 
 	}
@@ -91,19 +114,19 @@ func (r *MarketplaceSC) GetItemsForSale(page int, size int) ([]app.CombinedItemD
 	return items, nil
 }
 
-func (r *MarketplaceSC) GetMarketplaceItemFromSCById(itemId int) (app.MarketplaceItemDTO, error) {
+func (r *MarketplaceSC) GetMarketplaceItemFromSCById(itemId int) (app.CombinedItemDTO, error) {
 	var mkpItem app.MarketplaceItemDTO
 	item, err := r.MkpSc.Items(&bind.CallOpts{}, big.NewInt(int64(itemId)))
 	if err != nil {
-		return mkpItem, err
+		return app.CombinedItemDTO{}, err
 	}
 	nftItem, err := r.GetNftMetadata(item.TokenId)
 	if err != nil {
-		return mkpItem, err
+		return app.CombinedItemDTO{}, err
 	}
 	finalPrice, err := r.MkpSc.GetFinalPrice(&bind.CallOpts{}, item.ItemId)
 	if err != nil {
-		return mkpItem, err
+		return app.CombinedItemDTO{}, err
 	}
 
 	mkpItem = app.MarketplaceItemDTO{
@@ -120,7 +143,7 @@ func (r *MarketplaceSC) GetMarketplaceItemFromSCById(itemId int) (app.Marketplac
 		Description:  nftItem.Description,
 		Owner:        nftItem.Owner,
 	}
-	return mkpItem, nil
+	return CreateCombinedItemDTO(mkpItem), nil
 }
 
 func (r *MarketplaceSC) GetMarketplaceItemsFromSC() ([]app.MarketplaceItemDTO, error) {
@@ -312,9 +335,9 @@ func (r *MarketplaceSC) CheckNftInDB(nftId int) (int, error) {
 	return id, nil
 }
 
-func (r *MarketplaceSC) UpdateItemInDB(item app.MarketplaceItemDTO) error {
+func (r *MarketplaceSC) UpdateItemInDB(item app.CombinedItemDTO) error {
 	query := fmt.Sprintf("UPDATE %s SET owner=$1, image=$2, name=$3, description=$4 WHERE nft_id=$5", nftsTable)
-	_, err := r.db.Exec(query, strings.ToUpper(item.Owner), item.Image, item.Name, item.Description, item.TokenId)
+	_, err := r.db.Exec(query, strings.ToUpper(item.Nft.Owner), item.Nft.Image, item.Nft.Name, item.Nft.Description, item.TokenId)
 	if err != nil {
 		logrus.Fatalf("ERROR UPDATE NFT %d", item.TokenId)
 		return err
@@ -328,10 +351,10 @@ func (r *MarketplaceSC) UpdateItemInDB(item app.MarketplaceItemDTO) error {
 	return nil
 }
 
-func (r *MarketplaceSC) SaveItemToDB(item app.MarketplaceItemDTO) error {
+func (r *MarketplaceSC) SaveItemToDB(item app.CombinedItemDTO) error {
 	var id int
 	query := fmt.Sprintf("INSERT INTO %s (nft_id, owner ,image, name, description) VALUES ($1, $2, $3, $4, $5) RETURNING id", nftsTable)
-	row := r.db.QueryRow(query, item.TokenId, strings.ToUpper(item.Owner), item.Image, item.Name, item.Description)
+	row := r.db.QueryRow(query, item.TokenId, strings.ToUpper(item.Nft.Owner), item.Nft.Image, item.Nft.Name, item.Nft.Description)
 	if err := row.Scan(&id); err != nil {
 		logrus.Fatalf("ERROR ADD NFT %d %v", item.TokenId, err.Error())
 		//logrus.Println("ERROR %v", err.Error())
@@ -352,7 +375,7 @@ func (r *MarketplaceSC) ValidateSCItems(items []app.MarketplaceItemDTO) error {
 	logrus.Printf("Starting indexing items.. size %d", len(items))
 
 	for i := 0; i < len(items); i++ {
-		item := items[i]
+		item := CreateCombinedItemDTO(items[i])
 		isExists, err := r.CheckNftInDB(int(item.TokenId))
 		if err != nil {
 			logrus.Fatalf("ERROR CHECK NFT %d", err)
@@ -374,20 +397,20 @@ func (r *MarketplaceSC) ValidateSCItems(items []app.MarketplaceItemDTO) error {
 	return nil
 }
 
-func (r *MarketplaceSC) BuyItem(itemId int) (app.MarketplaceItemDTO, error) {
+func (r *MarketplaceSC) UpdateItemFromSC(itemId int) (app.CombinedItemDTO, error) {
 	item, err := r.GetMarketplaceItemFromSCById(itemId)
 	if err != nil {
-		return item, err
+		return app.CombinedItemDTO{}, err
 	}
 	err = r.UpdateItemInDB(item)
 	if err != nil {
-		return item, err
+		return app.CombinedItemDTO{}, err
 	}
-	query := fmt.Sprintf(`SELECT * FROM %s it INNER JOIN %s nt ON it.nft_id = nt.nft_id WHERE it.item_id=$1`, itemsTable, nftsTable)
-
-	if err := r.db.Get(&item, query, itemId); err != nil {
-		fmt.Printf("Error: %v", err.Error())
-		return item, err
-	}
+	//query := fmt.Sprintf(`SELECT * FROM %s it INNER JOIN %s nt ON it.nft_id = nt.nft_id WHERE it.item_id=$1`, itemsTable, nftsTable)
+	//
+	//if err := r.db.Get(&item, query, itemId); err != nil {
+	//	fmt.Printf("Error: %v", err.Error())
+	//	return item, err
+	//}
 	return item, nil
 }
